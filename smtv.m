@@ -39,7 +39,6 @@ D = cell(1, N_images);
 
 for k = 1 : N_images
     D{k} = lambda_2(k) * spdiags(good_entries{k}', 0, N_pixel, N_pixel);
-%     D{k} = spdiags(good_entries{k}', 0, N_pixel, N_pixel);
 end
 
 tol_1 = 1*10^-2;
@@ -56,7 +55,6 @@ for k = 1 : max_iterations
     A_lhs = zeros(size(A));
     f_rhs = zeros(N_pixel,1);
     for j = 1 : N_images
-%         A_lhs = A_lhs + lambda_2(j) * ( (A - images{j})*D{j} ) * D{j}';
         A_lhs = A_lhs + ( (A - images{j})*D{j} ) * D{j}';
         f_rhs(j, 1) = 0.5 * norm( (A - images{j})*D{j}, 'fro')^2;
     end

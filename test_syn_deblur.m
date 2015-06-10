@@ -52,7 +52,7 @@ for j = 1 : length(file_list)
         single_after_psnr(j, k) = psnr(image, reshape(single_image, m, n));
        
         tic;
-        gapg_img = solve_tv_gapg(P, images{k}, m, n, R, gapg_lambda, 'iso');
+        gapg_img = tv_gapg(P, images{k}, m, n, R, gapg_lambda, 'iso');
         gapg_time(j, k) = toc;
        
         gapg_img = reshape(gapg_img, m, n);

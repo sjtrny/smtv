@@ -3,19 +3,12 @@ addpath(paths);
 
 rng(1);
 
-start_row = 1000;
-end_row = 1499;
-start_col = 1500;
-end_col = 1999;
-
 m = 500;
 n = 500;
 d = 3;
 
 num_images = 5;
-start_num = 60;
 
-unshaped_images = cell(1, num_images);
 images = cell(1, num_images);
 good_entries = cell(1, num_images);
 
@@ -39,7 +32,7 @@ R = get_R(m, n);
 toc;
 
 tic;
-A = smtv(m*n, num_images, images, R, lambda_1, lambda_2, good_entries);
+A = smtv(m*n, num_images, images, R, lambda_1, lambda_2, good_entries, 'aniso');
 toc;
 
 fused = reshape(A', [m, n, d]);

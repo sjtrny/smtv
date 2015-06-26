@@ -23,8 +23,8 @@ single_time = zeros(length(file_list), num_images);
 gapg_after_psnr = zeros(length(file_list), num_images);
 gapg_time = zeros(length(file_list), num_images);
 
-P = fspecial('gaussian',[9, 9],4);
-P = P/sum(P(:));
+% P = fspecial('gaussian',[9, 9],4);
+% P = P/sum(P(:));
 
 for j = 1 : length(file_list)
     
@@ -36,8 +36,13 @@ for j = 1 : length(file_list)
 
     images = cell(1, num_images);
     good_entries = cell(1, num_images);
+    p_list = cell(1, num_images);
 
     for k = 1 : num_images
+        P = fspecial('gaussian',[9, 9],4) + 1e-3*randn(9,9);
+        P = P/sum(P(:));
+        p_list{k} = P;
+        
         im = imfilter(image,P,'symmetric')+ 1e-3*randn(size(image));
 
         images{k} = reshape(im, m*n, d)';
@@ -45,14 +50,14 @@ for j = 1 : length(file_list)
         good_entries{k} = ones(1, m*n);
         
         tic;
-        single_image = smtv_deblur(m, n, 1, images(k), R, lambda_1, lambda_2, good_entries(k), P);
+        single_image = smtv_deblur(m, n, 1, images(k), R, lambda_1, lambda_2, good_entries(k), p_list(k), 'aniso');
         single_time(j, k) = toc;
         
         single_before_psnr(j, k) = psnr(image, im);
         single_after_psnr(j, k) = psnr(image, reshape(single_image, m, n));
        
         tic;
-        gapg_img = tv_gapg(P, images{k}, m, n, R, gapg_lambda, 'iso');
+        gapg_img = tv_gapg(P, images{k}, m, n, R, gapg_lambda, 'aniso');
         gapg_time(j, k) = toc;
        
         gapg_img = reshape(gapg_img, m, n);
@@ -61,7 +66,7 @@ for j = 1 : length(file_list)
     end
 
     tic;
-    A = smtv_deblur(m, n, num_images, images, R, lambda_1, lambda_2, good_entries, P);
+    A = smtv_deblur(m, n, num_images, images, R, lambda_1, lambda_2, good_entries, p_list, 'aniso');
     fuse_time(j) = toc;
 
     fused = reshape(A', [m, n, 1]);

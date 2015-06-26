@@ -68,6 +68,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 
                 col_count = col_count + 1;
             }
+            else
+            {
+                row_inds[len] = k + 1;
+                row_inds[len + 1] = 1;
+                
+                col_inds[len] = col_count;
+                col_inds[len + 1] = col_count;
+                
+                vals[len] = 0;
+                vals[len + 1] = 0;
+                
+                len = len + 2;
+                
+                col_count = col_count + 1;
+            }
         }
         
     }

@@ -1,9 +1,11 @@
-function [ x, func_vals ] = tv_gapg( A, b, m, n, C, lambda, tv_type )
+function [ x, func_vals ] = tv_gapg( A, b, m, n, C, lambda, tv_type, good_entries )
 
 if(strcmp(tv_type, 'iso'))
     h_tv_solver = @solve_isol2;
+    h_tv_norm = @norm_l1l2;
 elseif(strcmp(tv_type, 'aniso'))
     h_tv_solver = @solve_l1;
+    h_tv_norm = @norm_l1;
 else
     error('Unidentified TV type. Use "iso" or "aniso".')
 end
@@ -30,6 +32,10 @@ t = 1;
 
 At_b = reshape(imfilter(reshape(b, m, n), A', 'symmetric'), 1, m*n);
 
+if ~exist('good_entries', 'var')
+    good_entries = ones(size(b));
+end
+
 tol = 1*10^-10;
 
 for k = 1 : max_iterations
@@ -40,7 +46,7 @@ for k = 1 : max_iterations
 
     At_A_x = reshape(imfilter(imfilter(reshape(y_x, m, n), A, 'symmetric'), A', 'symmetric'), 1, m*n);
 
-    x = y_x - 1/rho * (At_A_x - At_b + (y_x*C - y_u)*C');
+    x = y_x - 1/rho * (good_entries.*(At_A_x - At_b) + (y_x*C - y_u)*C');
     
     x = max(x, 0);
     x = min(x, 1);
@@ -57,7 +63,7 @@ for k = 1 : max_iterations
     mu = max(mu*(0.1*rat + 0.9), mu_min);
     rho = (sqrt(mu)*A_2_est + 4*sqrt(eta))^2;
     
-    func_vals(k) = 0.5*norm(imfilter(reshape(x, m, n), A, 'symmetric') - reshape(b, m, n), 'fro')^2 + lambda*norm_l1(u);
+    func_vals(k) = 0.5*norm(imfilter(reshape(x, m, n), A, 'symmetric') - reshape(b, m, n), 'fro')^2 + lambda*h_tv_norm(u);
     
     if (abs(last_f_value -  func_vals(k)) <= tol)
         break;

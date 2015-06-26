@@ -1,4 +1,4 @@
-function [ A ] = smtv_deblur( m, n, N_images, images, R, lambda, lambda_2, good_entries, P, A)
+function [ A ] = smtv_deblur( m, n, N_images, images, R, lambda, lambda_2, good_entries, p_list, tv_type, A)
 %% Solves the following
 %
 % min_{A}   lambda * TV(A) + 1/2 | (A - I_i) D_i |^2
@@ -8,6 +8,16 @@ function [ A ] = smtv_deblur( m, n, N_images, images, R, lambda, lambda_2, good_
 % Created by Stephen Tierney
 % stierney@csu.edu.au
 %
+
+if(strcmp(tv_type, 'iso'))
+    h_tv_solver = @solve_isol2;
+    h_tv_norm = @norm_l1l2;
+elseif(strcmp(tv_type, 'aniso'))
+    h_tv_solver = @solve_l1;
+    h_tv_norm = @norm_l1;
+else
+    error('Unidentified TV type. Use "iso" or "aniso".')
+end
 
 warning('off','all')
 
@@ -58,7 +68,7 @@ for k = 1 : max_iterations
     A_lhs = zeros(size(A));
     f_rhs = zeros(N_pixel,1);
     for j = 1 : N_images
-        A_lhs = A_lhs + ( (trans_P_P(A, images{j}, P, m, n, d))*D{j} ) * D{j}';
+        A_lhs = A_lhs + ( (trans_P_P(A, images{j}, p_list{j}, m, n, d))*D{j} ) * D{j}';
         f_rhs(j, 1) = 0.5 * norm( (A - images{j})*D{j}, 'fro')^2;
     end
     A = prev_A - 1/rho * (A_lhs + A_rhs);
@@ -67,7 +77,7 @@ for k = 1 : max_iterations
 % %     A = min(A, 1);
     
     % Update U
-    U = solve_l1(prev_A * R - 1/mu * Y , lambda / mu);
+    U = h_tv_solver(prev_A * R - 1/mu * Y , lambda / mu);
     
     % Update Y
     Y = Y + mu * (U - A*R);
@@ -83,7 +93,7 @@ for k = 1 : max_iterations
      
     mu = min(mu_max, gamma * mu);    
 
-    func_vals(k) = lambda*norm_l1(A*R) + sum(f_rhs);
+    func_vals(k) = lambda*h_tv_norm(A*R) + sum(f_rhs);
     
     % Check convergence
     if ( norm(U - A*R, 'fro')/normfR < tol_1 && max_diff < tol_2)

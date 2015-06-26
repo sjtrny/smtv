@@ -33,7 +33,7 @@ for j = 1 : length(file_list)
 
         good_entries{k} = ones(1, m*n);
         
-        single_image = smtv(m*n, 1, images(k), R, lambda_1, lambda_2, good_entries(k));
+        single_image = smtv(m*n, 1, images(k), R, lambda_1, lambda_2, good_entries(k), 'aniso');
         
         imwrite(reshape(single_image', [m, n, d]), ['results_lowlight/' file_list{j} '_' num2str(k) '.png'], 'png');
         
@@ -43,7 +43,7 @@ for j = 1 : length(file_list)
 
     avg_im = avg_im/5;
     
-    A = smtv(m * n, num_images, images, R, lambda_1, lambda_2, good_entries);
+    A = smtv(m * n, num_images, images, R, lambda_1, lambda_2, good_entries, 'aniso');
 
     imwrite(reshape(A', [m, n, d]), ['results_lowlight/' file_list{j} '_fused.png'], 'png');
     
